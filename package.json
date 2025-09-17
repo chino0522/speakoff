@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",
+    "@radix-ui/themes": "^3.2.1",
     "next": "15.5.3",
     "next-auth": "^5.0.0-beta.29",
+    "radix-ui": "^1.4.3",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
