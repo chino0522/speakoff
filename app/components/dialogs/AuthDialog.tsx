@@ -5,9 +5,9 @@ import { Cross2Icon } from '@radix-ui/react-icons';
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 // import { useState } from 'react';
-import SignInForm from './forms/SignInForm';
-import SignUpForm from './forms/SignUpForm';
-import OAuthButton from './OAuthButton';
+import SignInForm from '../forms/SignInForm';
+import SignUpForm from '../forms/SignUpForm';
+import OAuthButton from '../OAuthButton';
 
 export default function AuthDialog() {
     // const [isSignIn, setIsSignIn] = useState(true);
