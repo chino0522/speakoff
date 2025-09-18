@@ -8,7 +8,7 @@ export default function DebateRoom() {
 
     useEffect(() => {
         const roomId = "room1"; // hardcoded room for now
-        const ws = new WebSocket("https://4b2b8ea9c947.ngrok-free.app");
+        const ws = new WebSocket("wss://4b2b8ea9c947.ngrok-free.app");
         wsRef.current = ws;
 
         const pc = new RTCPeerConnection({
