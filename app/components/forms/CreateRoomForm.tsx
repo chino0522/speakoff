@@ -19,7 +19,7 @@ export default async function CreateRoomForm() {
                 const description = formData.get("description") as string;
                 const tags = formData.get("tags") as string;
 
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/podcast`, {
+                const res = await fetch(`https://speakoff.vercel.app/api/podcast`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
