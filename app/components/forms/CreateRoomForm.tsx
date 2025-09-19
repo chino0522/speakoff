@@ -1,8 +1,45 @@
-import { Button } from '@radix-ui/themes';
+import { auth } from "@/auth"; // your NextAuth auth helper
+import { Button } from "@radix-ui/themes";
+import { redirect } from 'next/navigation';
 
-export default function CreateRoomForm() {
+export default async function CreateRoomForm() {
+    // Fetch the user session on the server
+    const session = await auth();
+
+    if (!session?.user?.id) {
+        return <p className="text-red-500">You must be signed in to create a podcast.</p>;
+    }
+
     return (
-        <form className="space-y-6">
+        <form
+            action={async (formData: FormData) => {
+                "use server";
+
+                const title = formData.get("title") as string;
+                const description = formData.get("description") as string;
+                const tags = formData.get("tags") as string;
+
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/podcast`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        tags,
+                        host_id: session.user.id, // ✅ get id directly from session
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Failed to create podcast");
+                }
+
+                redirect(`/podcast/${data.roomId}/host`);
+            }}
+            className="space-y-6"
+        >
             <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-200 mb-2">
                     Title
@@ -10,10 +47,10 @@ export default function CreateRoomForm() {
                 <input
                     type="text"
                     id="title"
+                    name="title"
                     className="w-full px-4 py-3 bg-theme-black border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-lime focus:border-transparent transition-all duration-200 hover:shadow-sm"
-                    placeholder="Enter debate title"
+                    placeholder="Enter podcast title"
                     required
-                    aria-required="true"
                 />
             </div>
             <div>
@@ -22,11 +59,11 @@ export default function CreateRoomForm() {
                 </label>
                 <textarea
                     id="description"
+                    name="description"
                     className="w-full px-4 py-3 bg-theme-black border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-lime focus:border-transparent transition-all duration-200 hover:shadow-sm resize-y"
-                    placeholder="Describe the debate topic"
+                    placeholder="Describe the podcast"
                     rows={4}
                     required
-                    aria-required="true"
                 />
             </div>
             <div>
@@ -36,13 +73,10 @@ export default function CreateRoomForm() {
                 <input
                     type="text"
                     id="tags"
+                    name="tags"
                     className="w-full px-4 py-3 bg-theme-black border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-theme-lime focus:border-transparent transition-all duration-200 hover:shadow-sm"
-                    placeholder="e.g., politics, technology, education"
-                    aria-describedby="tags-help"
+                    placeholder="e.g., tech, education, health"
                 />
-                <p id="tags-help" className="text-xs text-gray-400 mt-1">
-                    Enter tags separated by commas
-                </p>
             </div>
             <div className="flex">
                 <Button
