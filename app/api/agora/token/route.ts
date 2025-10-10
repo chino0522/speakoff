@@ -4,32 +4,24 @@ import agoraToken from "agora-access-token";
 const { RtcTokenBuilder, RtmTokenBuilder, RtcRole, RtmRole } = agoraToken as any;
 
 export async function POST(req: NextRequest) {
-    const { channelName, uid, role } = await req.json();
+    const { channelName, uid, isHost } = await req.json();
 
     const appId = process.env.AGORA_APP_ID!;
     const appCert = process.env.AGORA_APP_CERTIFICATE!;
 
-    const expireSeconds = 3600; // 1 hour
+    const currentTime = Math.floor(Date.now() / 1000);
+    const privillegeExpireTime = currentTime + 3600 // 1 hour
 
-    const rtcRole = role === "host" ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
-    const intUid = Number(uid);
+    const rtcRole = isHost ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
 
-    const rtcToken = RtcTokenBuilder.buildTokenWithUid(
+    const rtcToken = RtcTokenBuilder.buildTokenWithAccount(
         appId,
         appCert,
         channelName,
-        intUid,
+        uid,
         rtcRole,
-        Math.floor(Date.now() / 1000) + expireSeconds
+        privillegeExpireTime
     );
 
-    const rtmToken = RtmTokenBuilder.buildToken(
-        appId,
-        appCert,
-        String(uid),
-        RtmRole.Rtm_User,
-        Math.floor(Date.now() / 1000) + expireSeconds
-    );
-
-    return NextResponse.json({ appId, rtcToken, rtmToken });
+    return NextResponse.json({ appId, rtcToken });
 }

@@ -6,14 +6,13 @@
   --color-theme-purple: #7C3BED;
   --color-theme-black: #1D2530;
   --color-danger: #f31260;
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
 }
 
 /* ✅ Scrollbar styles */
 @layer base {
   /* Firefox */
   html {
+    background-color: var(--color-theme-black);
     scrollbar-width: thin;
     scrollbar-color: var(--color-theme-lime) var(--color-theme-black);
   }

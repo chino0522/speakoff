@@ -36,7 +36,7 @@ export default async function CreateRoomForm() {
                     throw new Error(data.error || "Failed to create podcast");
                 }
 
-                redirect(`/podcast/${data.roomId}/host`);
+                redirect(`/podcast/${data.roomId}`);
             }}
             className="space-y-6"
         >

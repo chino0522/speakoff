@@ -6,6 +6,36 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY! // server-side only
 );
 
+export async function PATCH(req: NextRequest) {
+    try {
+        const { roomId } = await req.json();
+
+        const { error } = await supabase
+            .from("podcasts")
+            .update({ is_live: false, end_time: new Date().toISOString() })
+            .eq("id", roomId);
+
+        if (error) throw error;
+
+        return NextResponse.json({ message: "Podcast ended successfully" });
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
+export async function GET(req: NextRequest) {
+    try {
+        const { data, error } = await supabase.from("podcasts").select("*").eq("status", "live");
+
+
+        if (error) throw error;
+
+        return NextResponse.json(data)
+    } catch (err: any) {
+        return NextResponse.json(null)
+    }
+}
+
 export async function POST(req: NextRequest) {
     try {
         const { title, description, tags, host_id } = await req.json();
@@ -19,8 +49,9 @@ export async function POST(req: NextRequest) {
                 description,
                 tags,
                 start_time: new Date().toISOString(),
+                is_live: true,
             })
-            .select("id") // fetch generated id
+            .select("id") // fetch generated podcast id
             .single();
 
         if (error) throw error;
