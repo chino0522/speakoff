@@ -1,94 +1,89 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import {
+    useRTCClient,
+    useJoin,
+    usePublish,
+    useLocalMicrophoneTrack,
+} from "agora-rtc-react"
 
-type PodcastRoomClientProps = {
-    roomId: string;
-    uid: string;
-    isHost: boolean;
-};
+type Props = {
+    roomId: string
+    uid: string
+    isHost: boolean
+}
 
-export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomClientProps) {
-    const [joined, setJoined] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const clientRef = useRef<any>(null);
-    const trackRef = useRef<any>(null);
-    const router = useRouter();
+export default function PodcastRoomClient({ roomId, uid, isHost }: Props) {
+    const router = useRouter()
+    const client = useRTCClient()
+    const [joined, setJoined] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [token, setToken] = useState<string | null>(null)
+    const micTrack = useLocalMicrophoneTrack(isHost)
 
-    // 🎧 Join + setup audio
+    // 🎫 Fetch Agora token before joining
     useEffect(() => {
-        const init = async () => {
-            const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
-
+        const fetchToken = async () => {
             const res = await fetch("/api/agora/token", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ channelName: roomId, uid, isHost }),
-            });
+            })
+            const { rtcToken } = await res.json()
+            setToken(rtcToken)
+        }
+        fetchToken()
+    }, [roomId, uid, isHost])
 
-            const { appId, rtcToken } = await res.json();
+    // 🎧 Join and set role once token is available
+    useEffect(() => {
+        if (!token) return
 
-            const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
-            clientRef.current = client;
+        const joinChannel = async () => {
+            await client.setClientRole(isHost ? "host" : "audience")
+            await client.join(process.env.NEXT_PUBLIC_AGORA_APP_ID!, roomId, token, uid)
 
-            // ✅ set correct role
-            await client.setClientRole(isHost ? "host" : "audience");
-
-            // Join
-            await client.join(appId, roomId, rtcToken, uid);
-
-            if (isHost) {
-                const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                await client.publish([micTrack]);
-                trackRef.current = micTrack;
-            } else {
-                client.on("user-published", async (user: any, mediaType: "audio" | "video" | "datachannel") => {
-                    await client.subscribe(user, mediaType);
+            if (!isHost) {
+                client.on("user-published", async (user, mediaType) => {
+                    await client.subscribe(user, mediaType)
                     if (mediaType === "audio" && user.audioTrack) {
-                        user.audioTrack.play();
+                        user.audioTrack.play()
                     }
-                });
+                })
             }
 
-            setJoined(true);
-        };
+            setJoined(true)
+        }
 
-        init();
-
+        joinChannel()
         return () => {
-            // Cleanup when leaving
-            trackRef.current?.close();
-            clientRef.current?.leave();
-        };
-    }, [roomId, uid, isHost]);
+            micTrack?.localMicrophoneTrack?.close()
+            client.leave()
+        }
+    }, [token])
 
-    // 🛑 Host manually ends stream
+    // 📡 Publish local mic track if host
+    usePublish(isHost && micTrack?.localMicrophoneTrack ? [micTrack.localMicrophoneTrack] : [])
+
     const handleEndStream = async () => {
-        setLoading(true);
-
+        setLoading(true)
         try {
-            // Close local mic
-            trackRef.current?.close();
-
-            // Leave channel
-            await clientRef.current?.leave();
-
-            // Update Supabase: mark stream as not live
+            micTrack?.localMicrophoneTrack?.close()
+            await client.leave()
             await fetch("/api/podcast/end", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ roomId }),
-            });
-
-            // Redirect
-            router.push("/");
+            })
+            router.push("/")
         } catch (err) {
-            console.error("Error ending stream:", err);
+            console.error("Error ending stream:", err)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-black text-white space-y-6">
@@ -97,7 +92,6 @@ export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomCl
                     <p className="text-xl font-semibold">
                         {isHost ? "🎙️ You’re live!" : "🎧 Listening to the podcast..."}
                     </p>
-
                     {isHost && (
                         <button
                             onClick={handleEndStream}
@@ -112,5 +106,5 @@ export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomCl
                 <p>Connecting to podcast...</p>
             )}
         </div>
-    );
+    )
 }
