@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientBrowser } from "@/utils/supabase/client";
+import PodcastEnded from "./PodcastEnded";
 
 type PodcastRoomClientProps = {
     roomId: string;
@@ -13,11 +14,12 @@ type PodcastRoomClientProps = {
 export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomClientProps) {
     const [joined, setJoined] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isLive, setIsLive] = useState(isHost); // Host starts live
     const clientRef = useRef<any>(null);
     const trackRef = useRef<any>(null);
     const router = useRouter();
 
-    // 🎧 Join Agora
+    // 🎧 Initialize and join Agora
     useEffect(() => {
         const init = async () => {
             const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
@@ -37,23 +39,27 @@ export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomCl
                 const micTrack = await AgoraRTC.createMicrophoneAudioTrack();
                 await client.publish([micTrack]);
                 trackRef.current = micTrack;
+                setIsLive(true);
             } else {
                 client.on("user-published", async (user: any, mediaType: "audio") => {
                     await client.subscribe(user, mediaType);
                     if (user.audioTrack) user.audioTrack.play();
+                    setIsLive(true);
                 });
             }
+
             setJoined(true);
         };
 
         init();
+
         return () => {
             trackRef.current?.close();
             clientRef.current?.leave();
         };
     }, [roomId, uid, isHost]);
 
-    // 🧠 Listen for host ending
+    // 🧠 Listen for podcast ending via Supabase
     useEffect(() => {
         const supabase = createClientBrowser();
 
@@ -64,10 +70,10 @@ export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomCl
                 { event: "UPDATE", schema: "public", table: "podcasts", filter: `id=eq.${roomId}` },
                 (payload) => {
                     if (payload.new?.is_live === false) {
-                        alert("🔴 Podcast has ended");
+                        console.log("Podcast ended remotely.");
                         trackRef.current?.close();
                         clientRef.current?.leave();
-                        router.push("/");
+                        setIsLive(false);
                     }
                 }
             )
@@ -78,6 +84,7 @@ export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomCl
         };
     }, [roomId]);
 
+    // 🛑 Host manually ends stream
     const handleEndStream = async () => {
         setLoading(true);
         try {
@@ -88,13 +95,18 @@ export default function PodcastRoomClient({ roomId, uid, isHost }: PodcastRoomCl
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ roomId }),
             });
-            router.push("/");
+            setIsLive(false);
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
     };
+
+    // 🧩 Conditional rendering
+    if (!isLive) {
+        return <PodcastEnded />;
+    }
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-black text-white space-y-6">
