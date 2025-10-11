@@ -7,7 +7,10 @@ export async function POST(req: Request) {
 
     const { error } = await supabase
         .from("podcasts")
-        .update({ is_live: false })
+        .update({
+            end_time: new Date().toISOString(),
+            is_live: false
+        })
         .eq("id", roomId);
 
     if (error) {

@@ -24,16 +24,12 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-    try {
-        const { data, error } = await supabase.from("podcasts").select("*").eq("status", "live");
 
+    const { data, error } = await supabase.from("podcasts").select("*").eq("is_live", true);
 
-        if (error) throw error;
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-        return NextResponse.json(data)
-    } catch (err: any) {
-        return NextResponse.json(null)
-    }
+    return NextResponse.json(data)
 }
 
 export async function POST(req: NextRequest) {
