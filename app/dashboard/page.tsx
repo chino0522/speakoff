@@ -1,7 +1,9 @@
 "use client"
+
 import { Button } from '@radix-ui/themes';
-import { Share, Clock, Users, Mic, Play, Heart } from 'lucide-react';
+import { Share, Mic, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Podcast {
     id: string;
@@ -19,6 +21,7 @@ interface Podcast {
 export default function Dashboard() {
     const [podcasts, setPodcasts] = useState<Podcast[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter()
 
     useEffect(() => {
         fetchPodcasts();
@@ -60,23 +63,8 @@ export default function Dashboard() {
         return date.toLocaleDateString();
     };
 
-    const getDuration = (start: string | null, end: string | null): string => {
-        if (!start || !end) return 'N/A';
-
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const diffMinutes = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60));
-        const hours = Math.floor(diffMinutes / 60);
-        const minutes = diffMinutes % 60;
-
-        if (hours > 0) {
-            return `${hours}:${minutes.toString().padStart(2, '0')}:00`;
-        }
-        return `${minutes}:00`;
-    };
-
     const handleJoinPodcast = (podcastId: string): void => {
-        window.location.href = `/podcast/${podcastId}`;
+        router.push(`podcast/${podcastId}`)
     };
 
     if (loading) {
@@ -134,11 +122,11 @@ export default function Dashboard() {
 
                             {/* Tags */}
                             {podcast.tags && (
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {podcast.tags.split(',').slice(0, 3).map((tag, index) => (
+                                <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto">
+                                    {podcast.tags.split(',').map((tag, index) => (
                                         <span
                                             key={index}
-                                            className="bg-gray-800 text-gray-300 px-2 py-1 rounded-md text-xs font-medium"
+                                            className="bg-gray-800 text-purple-400 px-2 py-1 rounded-md text-xs font-medium "
                                         >
                                             {tag.trim()}
                                         </span>
@@ -149,34 +137,8 @@ export default function Dashboard() {
                             {/* Time Info */}
                             <div className="flex items-center gap-4 text-sm text-gray-400 mb-4 pb-4 border-b border-gray-800">
                                 <div className="flex items-center gap-1.5">
-                                    <Clock className="w-4 h-4" />
-                                    <span>{getDuration(podcast.start_time, podcast.end_time)}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
                                     <Play className="w-4 h-4" />
                                     <span>{formatDate(podcast.start_time)}</span>
-                                </div>
-                            </div>
-
-                            {/* Stats */}
-                            <div className="grid grid-cols-2 gap-3 mb-5">
-                                <div className="bg-gray-800 rounded-lg p-3">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Users className="w-4 h-4 text-blue-400" />
-                                        <span className="text-xs text-gray-400">Peak Listeners</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-white">
-                                        {podcast.num_of_listeners ?? 0}
-                                    </p>
-                                </div>
-                                <div className="bg-gray-800 rounded-lg p-3">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <Heart className="w-4 h-4 text-pink-400" />
-                                        <span className="text-xs text-gray-400">Peak Likes</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-white">
-                                        {podcast.num_of_likes ?? 0}
-                                    </p>
                                 </div>
                             </div>
 
@@ -184,18 +146,10 @@ export default function Dashboard() {
                             <div className="flex gap-2">
                                 <Button
                                     size="3"
-                                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors font-semibold"
+                                    className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-colors font-semibold"
                                     onClick={() => handleJoinPodcast(podcast.id)}
                                 >
-                                    <Play className="w-4 h-4 mr-2" />
                                     Listen
-                                </Button>
-                                <Button
-                                    size="3"
-                                    variant="outline"
-                                    className="px-4 border-gray-700 text-gray-300 hover:bg-gray-800 cursor-pointer transition-colors"
-                                >
-                                    <Share className="w-4 h-4" />
                                 </Button>
                             </div>
                         </div>

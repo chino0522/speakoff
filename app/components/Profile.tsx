@@ -1,5 +1,6 @@
 import * as Avatar from '@radix-ui/react-avatar';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import Link from 'next/link';
 
 type ProfileProps = {
     name: string | null | undefined;
@@ -40,6 +41,17 @@ export default function Profile({ name, email, image }: ProfileProps) {
                             {email || 'No email provided'}
                         </div>
                         <DropdownMenu.Separator className="h-px bg-gray-600 my-2" />
+                        <DropdownMenu.Item className='outline-none'>
+                            <button
+                                className="w-full text-left p-1 text-sm text-white hover:bg-theme-purple/30 rounded cursor-pointer transition-colors"
+                            >
+                                <Link
+                                href={`/podcast`}
+                                >
+                                    Podcast
+                                </Link>
+                            </button>
+                        </DropdownMenu.Item>
                         <DropdownMenu.Item className='outline-none'>
                             <button
                                 className="w-full text-left p-1 text-sm text-white hover:bg-theme-purple/30 rounded cursor-pointer transition-colors"
