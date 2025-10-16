@@ -84,7 +84,7 @@ export default function Dashboard() {
                 <div className="text-center">
                     <Mic className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <h3 className="text-xl font-semibold text-white mb-2">No podcasts yet</h3>
-                    <p className="text-gray-400">Create your first podcast to get started</p>
+                    <p className="text-gray-400">Try creating your own podcasts!</p>
                 </div>
             </div>
         );
