@@ -93,6 +93,58 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen bg-gray-950 p-6">
             <div className="max-w-7xl mx-auto">
+                {/* Search Bar */}
+                <div className="mb-6 flex gap-3">
+                    <div className="relative flex-1">
+                        <input
+                            type="text"
+                            placeholder="Search podcasts..."
+                            className="w-full hover:border-theme-lime bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-gray-500 focus:outline-none transition-colors"
+                            style={{ 
+                                boxShadow: '0 0 0 1px rgba(230, 253, 163, 0.1)'
+                            }}
+                        />
+                        <svg
+                            className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            style={{ color: '#E6FDA3' }}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                        </svg>
+                    </div>
+                    <button
+                        onClick={fetchPodcasts}
+                        className=" cursor-pointer hover:text-theme-purple rounded-lg px-4 py-3 text-theme-lime transition-colors flex items-center gap-2"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Stats Box */}
+                <div className="mb-8 inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gray-900 border" style={{ borderColor: '#E6FDA3' }}>
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#E6FDA3' }}></div>
+                    <span className="font-bold text-xl" style={{ color: '#E6FDA3' }}>{podcasts.length}</span>
+                    <span className="text-gray-400 text-sm">podcasts live</span>
+                </div>
                 {/* Podcasts Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {podcasts.map((podcast) => (
